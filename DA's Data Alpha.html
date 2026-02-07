@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DA's Data Alpha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f5f7;--white:#ffffff;
+  --bd:#d2d2d7;--bd-l:#e8e8ed;--bd-xl:#f0f0f2;
+  --t1:#1d1d1f;--t2:#6e6e73;--t3:#86868b;--t4:#aeaeb2;
+  --blue:#0071e3;--blue-h:#0077ed;--blue-bg:rgba(0,113,227,.06);--blue-bg2:rgba(0,113,227,.12);
+  --green:#28cd41;--green-bg:rgba(40,205,65,.07);
+  --red:#ff3b30;--red-bg:rgba(255,59,48,.07);
+  --amber:#ff9f0a;--amber-bg:rgba(255,159,10,.07);
+  --purple:#bf5af2;--purple-bg:rgba(191,90,242,.07);
+  --r:14px;--rs:10px;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
+  --shadow-xs:0 0.5px 1px rgba(0,0,0,.03),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.06),0 1px 4px rgba(0,0,0,.04);
+  --shadow-btn:0 0.5px 1px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.08);
+  --shadow-btn-h:0 1px 4px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.06);
+}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-feature-settings:'cv01','cv02','cv03','cv04'}
+
+.hdr{position:sticky;top:0;z-index:100;background:rgba(245,245,247,.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--bd);padding:0 28px}
+.hdr-in{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:52px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-i{width:30px;height:30px;background:linear-gradient(135deg,#0071e3,#5856d6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:11px;color:#fff}
+.logo-t{font-weight:700;font-size:17px;letter-spacing:-.4px;color:var(--t1)}
+
+.tabs{display:inline-flex;background:rgba(118,118,128,.12);border-radius:8px;padding:2px}
+.tab{padding:5px 18px;border:none;background:transparent;color:var(--t2);font-family:inherit;font-size:13px;font-weight:600;border-radius:6.5px;cursor:pointer;transition:all .2s ease}
+.tab:hover{color:var(--t1)}
+.tab.on{background:#fff;color:var(--t1);box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 .5px rgba(0,0,0,.15)}
+
+.hdr-r{display:flex;align-items:center;gap:14px}
+.updated{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:-.3px}
+
+.btn-apple{height:30px;padding:0 12px;border-radius:7px;border:.5px solid var(--bd);background:linear-gradient(180deg,#fff 0%,#f5f5f7 100%);color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s ease;box-shadow:var(--shadow-btn);font-family:inherit;font-size:12px;font-weight:500}
+.btn-apple:hover{border-color:#c0c0c5;box-shadow:var(--shadow-btn-h);color:var(--t1);background:linear-gradient(180deg,#fff 0%,#f0f0f2 100%)}
+.btn-apple:active{transform:scale(.97);box-shadow:0 0.5px 1px rgba(0,0,0,.1)}
+.btn-apple.spin svg{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.main{max-width:1440px;margin:0 auto;padding:18px 28px 40px}
+.pane{display:none;animation:fadeIn .3s ease}.pane.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.sec{font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:1px;margin:4px 0 12px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:12px;margin-bottom:28px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+
+.tv-bar{margin-bottom:18px;border-radius:var(--rs);overflow:hidden;border:.5px solid var(--bd-l);background:#fff;height:50px;box-shadow:var(--shadow-xs)}
+
+.card{background:#fff;border:.5px solid var(--bd-l);border-radius:var(--r);overflow:hidden;position:relative;transition:all .25s ease;box-shadow:var(--shadow-xs)}
+.card:hover{box-shadow:var(--shadow);border-color:var(--bd)}
+.card-h{display:flex;align-items:center;padding:12px 16px 8px;gap:8px}
+.card-h .title{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.g{background:var(--green)}.dot.b{background:var(--blue)}.dot.r{background:var(--red)}.dot.a{background:var(--amber)}.dot.p{background:var(--purple)}.dot.k{background:var(--t1)}
+.name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.15px}
+
+.badge{font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:5px;font-weight:500;flex-shrink:0}
+.badge.live{background:var(--green-bg);color:var(--green)}
+.badge.fred{background:var(--blue-bg);color:var(--blue)}
+.badge.manual{background:rgba(118,118,128,.08);color:var(--t3)}
+.badge.delayed{background:var(--amber-bg);color:var(--amber)}
+
+.fs-btn{width:26px;height:26px;border-radius:6px;border:.5px solid var(--bd-l);background:linear-gradient(180deg,#fff,#f8f8fa);color:var(--t4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow-btn)}
+.fs-btn:hover{border-color:var(--blue);color:var(--blue);background:linear-gradient(180deg,#f0f5ff,#e8f0ff);box-shadow:var(--shadow-btn-h)}
+.fs-btn:active{transform:scale(.93)}
+.fs-btn svg{width:12px;height:12px}
+
+.tr{display:flex;gap:2px}
+.tr button{padding:3px 9px;border:none;background:transparent;color:var(--t4);font-family:var(--mono);font-size:10px;font-weight:500;border-radius:5px;cursor:pointer;transition:.15s}
+.tr button:hover{color:var(--t2);background:rgba(118,118,128,.08)}
+.tr button.on{color:var(--blue);background:var(--blue-bg)}
+
+.tv-wrap{height:310px;padding:0 16px 12px;overflow:hidden}
+.tv-wrap .tradingview-widget-container,.tv-wrap .tradingview-widget-container__widget,.tv-wrap iframe{width:100%!important;height:100%!important;border:none}
+
+.fred-wrap{padding:0 16px 8px}
+.fred-wrap img{width:100%;height:auto;border-radius:var(--rs);display:block}
+.fred-links{display:flex;gap:5px;padding:3px 16px 10px;flex-wrap:wrap}
+.fred-links a{font-family:var(--mono);font-size:10px;color:var(--blue);text-decoration:none;padding:3px 8px;border-radius:5px;transition:.15s;background:var(--blue-bg)}
+.fred-links a:hover{background:var(--blue-bg2)}
+
+.cj-wrap{padding:0 16px 12px}
+.cj-area{position:relative;height:240px}
+
+.val-row{display:flex;align-items:baseline;gap:10px;padding:0 16px 6px}
+.val{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--t1)}
+.chg{font-family:var(--mono);font-size:11px;font-weight:500;padding:2px 7px;border-radius:5px}
+.chg.up{color:var(--green);background:var(--green-bg)}.chg.dn{color:var(--red);background:var(--red-bg)}
+
+.tbl-wrap{padding:0 16px 2px;overflow-x:auto}
+.dtbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.dtbl td{padding:8px 10px;border-bottom:.5px solid var(--bd-xl);vertical-align:top}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl .lbl{color:var(--t3);font-weight:500;white-space:nowrap;width:110px;font-size:12px}
+.dtbl .val-cell{font-family:var(--mono);font-weight:600;font-size:12px;letter-spacing:-.2px}
+.dtbl .note{color:var(--t4);font-size:10.5px;font-weight:400}
+.dtbl .warn{color:var(--red)}.dtbl .good{color:var(--green)}.dtbl .neut{color:var(--amber)}
+
+.src-row{display:flex;gap:5px;padding:6px 16px 12px;flex-wrap:wrap}
+.src-btn{font-size:10.5px;font-family:var(--mono);padding:5px 11px;border-radius:7px;border:.5px solid var(--bd-l);background:linear-gradient(180deg,#fff,#f8f8fa);color:var(--t2);text-decoration:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px;box-shadow:var(--shadow-btn);letter-spacing:-.2px}
+.src-btn:hover{border-color:var(--blue);color:var(--blue);background:linear-gradient(180deg,#f0f5ff,#e8f0ff);box-shadow:var(--shadow-btn-h)}
+.src-btn:active{transform:scale(.97)}
+
+/* Fullscreen */
+.card.full{position:fixed!important;inset:0;width:100vw!important;height:100vh!important;z-index:9999;border-radius:0;border:none;margin:0;overflow:auto;background:#fff}
+.card.full .card-h{padding:12px 20px 8px}
+.card.full .tv-wrap{height:calc(100vh - 48px);padding:0 16px 16px}
+.card.full .fred-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 120px);padding:20px 40px}
+.card.full .fred-wrap img{max-height:calc(100vh - 160px);max-width:100%;width:auto;height:auto;object-fit:contain}
+.card.full .cj-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 160px);padding:0 40px 24px}
+.card.full .cj-area{height:calc(100vh - 200px);width:100%}
+.card.full .tbl-wrap{display:flex;justify-content:center;padding:20px 40px}
+.card.full .dtbl{max-width:700px;font-size:14px}
+.card.full .dtbl td{padding:12px 16px}
+.card.full .dtbl .lbl{font-size:13px;width:140px}
+.card.full .dtbl .val-cell{font-size:13px}
+.card.full .dtbl .note{font-size:11.5px}
+.card.full .src-row{justify-content:center;padding:16px 40px 24px}
+.card.full .fs-btn{border-color:var(--red);color:var(--red);background:linear-gradient(180deg,#fff5f5,#ffeceb)}
+
+.fs-close{display:none;position:fixed;top:10px;right:10px;z-index:10001;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;align-items:center;justify-content:center;font-size:16px;font-weight:300;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:all .15s}
+.fs-close:hover{background:rgba(0,0,0,.75);transform:scale(1.08)}
+
+/* Metric cards */
+.mrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:22px}
+.mcard{background:#fff;border:.5px solid var(--bd-l);border-radius:var(--rs);padding:14px 15px;display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow-xs);transition:.2s}
+.mcard:hover{box-shadow:var(--shadow)}
+.mcard .ml{font-size:10px;color:var(--t4);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.mcard .mv{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:-.5px}
+.mcard .mc{font-family:var(--mono);font-size:10.5px;font-weight:500}
+.mc.up{color:var(--green)}.mc.dn{color:var(--red)}
+
+.ahr-leg{display:flex;gap:12px;padding:0 16px 6px;font-size:10.5px;color:var(--t3)}
+.stb-row{display:flex;gap:12px;padding:0 16px 6px;flex-wrap:wrap}
+.stb-item{display:flex;flex-direction:column;gap:1px}
+.stb-item .l{font-size:9.5px;color:var(--t4);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.stb-item .v{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:-.2px}
+
+.err-msg{padding:20px 16px;text-align:center;color:var(--t4);font-size:12px}
+.err-msg a{color:var(--blue);text-decoration:none}
+
+/* Analysis */
+.analysis-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.analysis-panel{background:#fff;border:.5px solid var(--bd-l);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-xs)}
+.analysis-panel:hover{box-shadow:var(--shadow)}
+.ap-header{padding:16px 20px 12px;border-bottom:.5px solid var(--bd-xl);display:flex;align-items:center;gap:10px}
+.ap-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ap-icon.tf{background:linear-gradient(135deg,#007aff20,#5856d620)}
+.ap-icon.cr{background:linear-gradient(135deg,#ff9f0a20,#ff375f20)}
+.ap-title{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.ap-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.ap-body{padding:16px 20px 20px}
+.signal-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--bd-xl)}
+.signal-row:last-child{border:none}
+.sig-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sig-dot.bullish{background:#28cd41}.sig-dot.bearish{background:#ff3b30}.sig-dot.neutral{background:#ff9f0a}.sig-dot.caution{background:#ff9f0a}
+.sig-label{font-size:12px;color:var(--t3);width:100px;flex-shrink:0;font-weight:500}
+.sig-value{font-family:var(--mono);font-size:12px;font-weight:600;flex:1;min-width:0}
+.sig-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:5px;font-weight:600;flex-shrink:0}
+.sig-tag.bullish{color:var(--green);background:var(--green-bg)}
+.sig-tag.bearish{color:var(--red);background:var(--red-bg)}
+.sig-tag.neutral{color:var(--amber);background:var(--amber-bg)}
+.sig-tag.caution{color:var(--amber);background:var(--amber-bg)}
+.verdict-box{margin-top:14px;padding:14px 16px;border-radius:var(--rs);border:.5px solid var(--bd-l)}
+.verdict-box.bullish{background:rgba(40,205,65,.04);border-color:rgba(40,205,65,.2)}
+.verdict-box.bearish{background:rgba(255,59,48,.04);border-color:rgba(255,59,48,.2)}
+.verdict-box.neutral{background:rgba(255,159,10,.04);border-color:rgba(255,159,10,.2)}
+.verdict-title{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.verdict-text{font-size:12px;color:var(--t2);line-height:1.6}
+.analysis-note{text-align:center;color:var(--t4);font-size:11px;margin-top:16px;padding:8px;font-style:italic}
+
+.tradingview-widget-copyright{display:none!important}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd-l);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--bd)}
+@media(max-width:900px){.grid-3{grid-template-columns:1fr 1fr}.analysis-wrap{grid-template-columns:1fr}}
+@media(max-width:768px){.hdr-in{flex-wrap:wrap;height:auto;padding:8px 0;gap:8px}.hdr-r{display:none}.grid{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}.main{padding:12px 16px}.mrow{grid-template-columns:repeat(2,1fr)}.analysis-wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<button class="fs-close" id="fs-close" onclick="closeFS()">✕</button>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="logo"><div class="logo-i">DA</div><div class="logo-t">Data Alpha</div></div>
+    <div class="tabs" id="tab-bar">
+      <button class="tab on" onclick="swTab('tf')">TradeFi</button>
+      <button class="tab" onclick="swTab('cr')">Crypto</button>
+      <button class="tab" onclick="swTab('an')">Analysis</button>
+    </div>
+    <div class="hdr-r">
+      <div class="updated" id="upd"></div>
+      <button class="btn-apple" onclick="refreshAll()" id="ref-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh</button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- TRADEFI -->
+<div class="pane on" id="p-tf">
+  <!-- Ticker Tape — removed VIX & DXY (unreliable symbols) -->
+  <div class="tv-bar">
+    <div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    {"symbols":[{"proName":"FOREXCOM:SPXUSD","title":"S&P 500"},{"proName":"FOREXCOM:NSXUSD","title":"Nasdaq"},{"proName":"FOREXCOM:DJI","title":"Dow Jones"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"Crude Oil"},{"proName":"TVC:US10Y","title":"US 10Y"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"light","locale":"en"}
+    </script></div>
+  </div>
+  <div class="sec">Major Indices</div>
+  <div class="grid-3" id="tf-idx"></div>
+  <div class="sec">Volatility & Rates</div>
+  <div class="grid-3" id="tf-rates"></div>
+  <div class="sec">Sentiment & Leverage</div>
+  <div class="grid" id="tf-sent"></div>
+</div>
+
+<!-- CRYPTO -->
+<div class="pane" id="p-cr">
+  <div class="mrow">
+    <div class="mcard"><div class="ml">Bitcoin</div><div class="mv" id="m-btc">–</div><div class="mc" id="m-btc-c">–</div></div>
+    <div class="mcard"><div class="ml">Ethereum</div><div class="mv" id="m-eth">–</div><div class="mc" id="m-eth-c">–</div></div>
+    <div class="mcard"><div class="ml">BTC Dominance</div><div class="mv" id="m-btcd">–</div><div class="mc" id="m-btcd-c"></div></div>
+    <div class="mcard"><div class="ml">Fear & Greed</div><div class="mv" id="m-fg">–</div><div class="mc" id="m-fg-c">–</div></div>
+    <div class="mcard"><div class="ml">AHR999</div><div class="mv" id="m-ahr">–</div><div class="mc" id="m-ahr-c">–</div></div>
+    <div class="mcard"><div class="ml">60日累计涨幅</div><div class="mv" id="m-j60">–</div><div class="mc" id="m-j60-c">–</div></div>
+    <div class="mcard"><div class="ml">Stablecoin Mcap</div><div class="mv" id="m-stb">–</div><div class="mc" id="m-stb-c">–</div></div>
+  </div>
+  <div class="sec">Charts</div>
+  <div class="grid" id="cr-grid"></div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="pane" id="p-an">
+  <div class="sec">Market Entry Timing Analysis</div>
+  <div class="analysis-wrap">
+    <div class="analysis-panel">
+      <div class="ap-header">
+        <div class="ap-icon tf">📊</div>
+        <div><div class="ap-title">TradeFi 市场分析</div><div class="ap-sub">基于 BofA Survey · FINRA Margin Debt · AAII 散户情绪 · Fed利率</div></div>
+      </div>
+      <div class="ap-body" id="an-tf-body"><div class="err-msg">数据加载中…</div></div>
+    </div>
+    <div class="analysis-panel">
+      <div class="ap-header">
+        <div class="ap-icon cr">🪙</div>
+        <div><div class="ap-title">Crypto 市场分析</div><div class="ap-sub">基于 Fear & Greed · AHR999 · 60日涨幅 · Stablecoin · BTC.D</div></div>
+      </div>
+      <div class="ap-body" id="an-cr-body"><div class="err-msg">数据加载中…</div></div>
+    </div>
+  </div>
+  <div class="analysis-note">⚠️ 以上分析仅基于 Dashboard 内数据指标的规则引擎生成，不构成投资建议。请结合宏观形势与个人风险偏好自行判断。</div>
+</div>
+
+</main>
+
+<script>
+/* ===== TABS ===== */
+const TABS=['tf','cr','an'];
+function swTab(t){
+  document.querySelectorAll('#tab-bar .tab').forEach((b,i)=>b.classList.toggle('on',TABS[i]===t));
+  TABS.forEach(k=>document.getElementById('p-'+k).classList.toggle('on',k===t));
+  if(t==='an') buildAnalysis();
+}
+
+/* ===== FULLSCREEN ===== */
+const ICO_FS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+function openFS(c){closeFS();c.classList.add('full');document.getElementById('fs-close').style.display='flex';document.body.style.overflow='hidden'}
+function closeFS(){document.querySelectorAll('.card.full').forEach(c=>c.classList.remove('full'));document.getElementById('fs-close').style.display='none';document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFS()});
+
+/* ===== TV EMBED ===== */
+function tvEmbed(el,sym,opts={}){
+  const cfg={autosize:true,symbol:sym,interval:'D',timezone:'Etc/UTC',theme:'light',style:'1',locale:'en',
+    backgroundColor:'rgba(255,255,255,1)',gridColor:'rgba(0,0,0,0.03)',
+    hide_top_toolbar:false,hide_legend:false,save_image:false,calendar:false,
+    hide_volume:!opts.volume,hide_side_toolbar:false,allow_symbol_change:false,
+    range:opts.range||'12M',support_host:'https://www.tradingview.com',withdateranges:true};
+  const w=document.createElement('div');w.className='tradingview-widget-container';w.style.cssText='height:100%;width:100%';
+  const d=document.createElement('div');d.className='tradingview-widget-container__widget';d.style.cssText='height:100%;width:100%';
+  const s=document.createElement('script');s.type='text/javascript';
+  s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';s.async=true;s.textContent=JSON.stringify(cfg);
+  w.append(d,s);el.innerHTML='';el.appendChild(w);
+}
+
+/* ===== FRED URL ===== */
+function fredUrl(ids,colors,opts={}){
+  const days=opts.days||365,now=new Date(),st=new Date(now);st.setDate(st.getDate()-days);
+  const f=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const ia=ids.split(','),ca=colors.split(',');
+  let u='https://fred.stlouisfed.org/graph/fredgraph.png?bgcolor=%23ffffff&chart_type=line&drp=0&fo=Inter&graph_bgcolor=%23ffffff';
+  u+=`&height=${opts.h||280}&mode=fred&recession_bars=off&txtcolor=%2386868b&ts=12&tts=12&width=${opts.w||840}`;
+  u+=`&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&id=${ids}`;
+  u+=`&scale=${ia.map(()=>'left').join(',')}&cosd=${ia.map(()=>f(st)).join(',')}&coed=${ia.map(()=>f(now)).join(',')}`;
+  u+=`&line_color=${ca.map(c=>'%23'+c).join(',')}&lw=${ia.map(()=>'2').join(',')}`;
+  u+=`&line_style=${ia.map(()=>'solid').join(',')}&mark_type=${ia.map(()=>'none').join(',')}`;
+  u+=`&mw=${ia.map(()=>'3').join(',')}&fml=${ia.map(()=>'a').join(',')}`;
+  u+=`&fq=${ia.map(()=>'Daily%2C+Close').join(',')}&fam=${ia.map(()=>'avg').join(',')}&fgst=${ia.map(()=>'lin').join(',')}`;
+  return u;
+}
+
+/* ===== CARD BUILDER ===== */
+function mkCard(c){
+  const el=document.createElement('div');el.className='card';
+  let mid='';
+  if(c.badge)mid+=`<span class="badge ${c.badge}">${c.badgeTxt||c.badge.toUpperCase()}</span>`;
+  if(c.tr)mid+=`<div class="tr">${c.tr}</div>`;
+  el.innerHTML=`<div class="card-h"><div class="title"><div class="dot ${c.dot||'g'}"></div><div class="name">${c.name}</div></div>${mid}<button class="fs-btn" title="全屏">${ICO_FS}</button></div>${c.html||''}`;
+  el.querySelector('.fs-btn').onclick=()=>openFS(el);
+  if(c.tvSym){const w=el.querySelector('.tv-wrap');if(w)tvEmbed(w,c.tvSym,c.tvOpts||{})}
+  return el;
+}
+
+/* ===== BUILD TRADEFI ===== */
+function buildTF(){
+  const idx=document.getElementById('tf-idx');
+  [{name:'S&P 500',dot:'k',badge:'live',tvSym:'FOREXCOM:SPXUSD',html:'<div class="tv-wrap"></div>'},
+   {name:'Nasdaq Composite',dot:'b',badge:'live',tvSym:'FOREXCOM:NSXUSD',html:'<div class="tv-wrap"></div>'},
+   {name:'Dow Jones Industrial',dot:'p',badge:'live',tvSym:'FOREXCOM:DJI',html:'<div class="tv-wrap"></div>'},
+  ].forEach(x=>idx.appendChild(mkCard(x)));
+
+  const rg=document.getElementById('tf-rates');
+  rg.appendChild(mkCard({name:'VIX — Volatility Index',dot:'r',badge:'fred',badgeTxt:'FRED',
+    html:`<div class="fred-wrap"><img src="${fredUrl('VIXCLS','ff3b30')}" alt="VIX" loading="lazy"></div>
+    <div class="fred-links"><a href="https://fred.stlouisfed.org/series/VIXCLS" target="_blank">FRED</a><a href="https://www.tradingview.com/symbols/TVC-VIX/" target="_blank">TradingView</a></div>`}));
+  rg.appendChild(mkCard({name:'Treasury Yields (2Y/10Y/30Y)',dot:'a',badge:'fred',badgeTxt:'FRED',
+    html:`<div class="fred-wrap"><img src="${fredUrl('DGS2,DGS10,DGS30','28cd41,0071e3,ff9f0a')}" alt="Yields" loading="lazy"></div>
+    <div class="fred-links"><a href="https://fred.stlouisfed.org/series/DGS10" target="_blank">10Y</a><a href="https://fred.stlouisfed.org/series/DGS2" target="_blank">2Y</a><a href="https://fred.stlouisfed.org/series/DGS30" target="_blank">30Y</a></div>`}));
+  rg.appendChild(mkCard({name:'10Y − 2Y Yield Spread',dot:'a',badge:'fred',badgeTxt:'FRED',
+    html:`<div class="fred-wrap"><img src="${fredUrl('T10Y2Y','ff9f0a',{days:1095})}" alt="Spread" loading="lazy"></div>
+    <div class="fred-links"><a href="https://fred.stlouisfed.org/series/T10Y2Y" target="_blank">FRED</a></div>`}));
+
+  const sg=document.getElementById('tf-sent');
+  sg.appendChild(mkCard({name:'BofA Fund Manager Survey — January 2026',dot:'a',badge:'manual',badgeTxt:'MONTHLY',
+    html:`<div class="tbl-wrap"><table class="dtbl">
+    <tr><td class="lbl">受访规模</td><td class="val-cell">227位经理 / $646B AUM</td></tr>
+    <tr><td class="lbl">Cash Level</td><td class="val-cell warn">3.2% <span class="note">— 历史最低，触发卖出信号</span></td></tr>
+    <tr><td class="lbl">Bull & Bear</td><td class="val-cell warn">9.4 "Hyper-Bull" <span class="note">— 极端反向卖出信号</span></td></tr>
+    <tr><td class="lbl">情绪水平</td><td class="val-cell warn">2021年7月以来最乐观</td></tr>
+    <tr><td class="lbl">增长预期</td><td class="val-cell good">Net 38% 看好全球增长 <span class="note">— Jul'21以来最高</span></td></tr>
+    <tr><td class="lbl">衰退预期</td><td class="val-cell good">仅 9% <span class="note">— Jan'22以来最低</span></td></tr>
+    <tr><td class="lbl">软着陆</td><td class="val-cell">57% 软着陆 / 3% 硬着陆</td></tr>
+    <tr><td class="lbl">股票配置</td><td class="val-cell warn">48% 超配 <span class="note">— Dec'24以来最高</span></td></tr>
+    <tr><td class="lbl">债券配置</td><td class="val-cell">最低配 <span class="note">— Sep'22以来</span></td></tr>
+    <tr><td class="lbl">大宗商品</td><td class="val-cell good">26% 超配 <span class="note">— Jun'22以来最高</span></td></tr>
+    <tr><td class="lbl">流动性评级</td><td class="val-cell good">过去17年第3佳</td></tr>
+    <tr><td class="lbl">下行对冲</td><td class="val-cell warn">~48% 无保护 <span class="note">— 2018以来最高</span></td></tr>
+    <tr><td class="lbl">最拥挤交易</td><td class="val-cell neut">Long Gold (51%)</td></tr>
+    <tr><td class="lbl">次拥挤交易</td><td class="val-cell">Long Mag 7 / US Tech</td></tr>
+    <tr><td class="lbl">#1 尾部风险</td><td class="val-cell warn">地缘政治</td></tr>
+    <tr><td class="lbl">#2 尾部风险</td><td class="val-cell warn">AI 泡沫</td></tr>
+    <tr><td class="lbl">反向策略</td><td class="val-cell">Long 现金+债券 vs 大宗+股票</td></tr>
+    </table></div>
+    <div class="src-row">
+      <a class="src-btn" href="https://www.hedgefundtips.com/january-2026-bank-of-america-global-fund-manager-survey-results-summary/" target="_blank">📄 完整图表</a>
+      <a class="src-btn" href="https://finance.yahoo.com/news/bofa-survey-shows-investors-unprepared-095428645.html" target="_blank">Yahoo Finance</a>
+      <a class="src-btn" href="https://www.investing.com/news/stock-market-news/bofas-survey-shows-investors-are-most-bullish-since-2021-4454341" target="_blank">Investing.com</a>
+    </div>`}));
+
+  sg.appendChild(mkCard({name:'FINRA Margin Debt — December 2025',dot:'r',badge:'delayed',badgeTxt:'MONTHLY',
+    html:`<div class="tbl-wrap"><table class="dtbl">
+    <tr><td class="lbl">Margin Debt</td><td class="val-cell warn">$1.226 Trillion <span class="note">— 历史新高</span></td></tr>
+    <tr><td class="lbl">连涨月数</td><td class="val-cell warn">8个月连涨</td></tr>
+    <tr><td class="lbl">月增幅</td><td class="val-cell">+0.9% <span class="note">环比 November</span></td></tr>
+    <tr><td class="lbl">同比增长</td><td class="val-cell warn">+36.3% YoY</td></tr>
+    <tr><td class="lbl">7月内增长</td><td class="val-cell warn">+$364B (+43%)</td></tr>
+    <tr><td class="lbl">Debt / GDP</td><td class="val-cell warn">3.91% <span class="note">— 接近历史最高 3.97%</span></td></tr>
+    <tr><td class="lbl">Debt / Mkt Cap</td><td class="val-cell">1.80% <span class="note">— 低于中位数 1.96%</span></td></tr>
+    <tr><td class="lbl">Net Credit</td><td class="val-cell warn">-$814.1B <span class="note">— 接近历史最低 -$817.8B</span></td></tr>
+    <tr><td class="lbl">实际增长</td><td class="val-cell warn">+482% <span class="note">自1997年 (通胀调整后)</span></td></tr>
+    <tr><td class="lbl">S&P 500增长</td><td class="val-cell">+328% <span class="note">同期 — 杠杆增速远超市场</span></td></tr>
+    <tr><td class="lbl">对冲基金杠杆</td><td class="val-cell warn">$6.8T <span class="note">— 3年翻倍，历史最高</span></td></tr>
+    <tr><td class="lbl">Debt/Credit比</td><td class="val-cell warn">6.0x <span class="note">— 史无前例</span></td></tr>
+    <tr><td class="lbl">信号总结</td><td class="val-cell warn">杠杆创新高 + 现金创新低 = 极端乐观</td></tr>
+    </table></div>
+    <div class="src-row">
+      <a class="src-btn" href="https://www.advisorperspectives.com/dshort/updates/2026/01/22/margin-debt-finra-new-record-high-december-2025" target="_blank">📊 Advisor Perspectives</a>
+      <a class="src-btn" href="https://www.gurufocus.com/economic_indicators/4264/finra-investor-margin-debt" target="_blank">📊 GuruFocus</a>
+      <a class="src-btn" href="https://www.finra.org/rules-guidance/key-topics/margin-accounts/margin-statistics" target="_blank">FINRA 原始</a>
+    </div>`}));
+
+  sg.appendChild(mkCard({name:'AAII 散户情绪调查 — Feb 4, 2026',dot:'g',badge:'delayed',badgeTxt:'WEEKLY',
+    html:`<div class="tbl-wrap"><table class="dtbl">
+    <tr><td class="lbl">Bullish 看多</td><td class="val-cell good">39.7% <span class="note">— 连续10周高于均值37.5%</span></td></tr>
+    <tr><td class="lbl">Neutral 中性</td><td class="val-cell">31.3% <span class="note">— 接近均值31.5%</span></td></tr>
+    <tr><td class="lbl">Bearish 看空</td><td class="val-cell">29.0% <span class="note">— 低于均值31.0%</span></td></tr>
+    <tr><td class="lbl">Bull-Bear 差值</td><td class="val-cell good">+10.7% <span class="note">— 散户温和看多</span></td></tr>
+    <tr><td class="lbl">历史均值</td><td class="val-cell">37.5% / 31.5% / 31.0%</td></tr>
+    <tr><td class="lbl">上周 (1/28)</td><td class="val-cell">44.4% / 24.8% / 30.8%</td></tr>
+    <tr><td class="lbl">前周 (1/21)</td><td class="val-cell">43.2% / 24.1% / 32.7%</td></tr>
+    <tr><td class="lbl">1年内Bull高</td><td class="val-cell warn">49.5% <span class="note">— 1/14/2026</span></td></tr>
+    <tr><td class="lbl">1年内Bear高</td><td class="val-cell good">61.9% <span class="note">— 4/2/2025 (关税恐慌)</span></td></tr>
+    <tr><td class="lbl">反向信号阈值</td><td class="val-cell">Bull&gt;60% 卖出 / Bear&gt;50% 买入</td></tr>
+    <tr><td class="lbl">当前信号</td><td class="val-cell neut">温和偏多，未触发极端信号 <span class="note">— 观察趋势</span></td></tr>
+    </table></div>
+    <div class="src-row">
+      <a class="src-btn" href="https://www.aaii.com/sentimentsurvey" target="_blank">📊 AAII 官网</a>
+      <a class="src-btn" href="https://en.macromicro.me/charts/20828/us-aaii-sentimentsurvey" target="_blank">📈 MacroMicro</a>
+    </div>`}));
+
+  sg.appendChild(mkCard({name:'CME FedWatch — 利率预期',dot:'p',badge:'manual',badgeTxt:'FOMC',
+    html:`<div class="tbl-wrap"><table class="dtbl">
+    <tr><td class="lbl">当前利率</td><td class="val-cell">3.50 – 3.75% <span class="note">— Jan 28 维持不变</span></td></tr>
+    <tr><td class="lbl">投票结果</td><td class="val-cell">10-2 维持 <span class="note">— Miran/Waller 反对(主张降25bp)</span></td></tr>
+    <tr><td class="lbl">下次FOMC</td><td class="val-cell neut">2026年3月18日</td></tr>
+    <tr><td class="lbl">3月预期</td><td class="val-cell">87% 维持 / 13% 降25bp</td></tr>
+    <tr><td class="lbl">6月预期</td><td class="val-cell good">首次降息最早窗口 <span class="note">— 市场主流预期</span></td></tr>
+    <tr><td class="lbl">2026全年</td><td class="val-cell">市场定价: 最多2次降息 (各25bp)</td></tr>
+    <tr><td class="lbl">终点利率</td><td class="val-cell">3.00 – 3.25% <span class="note">— iShares/Fed点阵图</span></td></tr>
+    <tr><td class="lbl">新主席</td><td class="val-cell neut">Kevin Warsh 被提名 <span class="note">— Powell 5月卸任</span></td></tr>
+    <tr><td class="lbl">通胀</td><td class="val-cell warn">~3% 仍高于2%目标 <span class="note">— 关税不确定性</span></td></tr>
+    <tr><td class="lbl">失业率</td><td class="val-cell good">4.4% 趋稳 <span class="note">— 就业市场降温但稳定</span></td></tr>
+    <tr><td class="lbl">对市场影响</td><td class="val-cell">降息利好风险资产 <span class="note">— 暂停期间观望为主</span></td></tr>
+    </table></div>
+    <div class="fred-wrap"><img src="${fredUrl('DFF','5856d6',{days:1095})}" alt="Fed Funds Rate" loading="lazy"></div>
+    <div class="src-row">
+      <a class="src-btn" href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank">📊 CME FedWatch</a>
+      <a class="src-btn" href="https://www.investing.com/central-banks/fed-rate-monitor" target="_blank">📈 Investing.com</a>
+      <a class="src-btn" href="https://growbeansprout.com/tools/fedwatch" target="_blank">🌱 GrowBeansprout</a>
+    </div>`}));
+}
+
+/* ===== BUILD CRYPTO ===== */
+function buildCR(){
+  const g=document.getElementById('cr-grid');
+  g.appendChild(mkCard({name:'BTC / USD',dot:'a',badge:'live',tvSym:'BINANCE:BTCUSDT',tvOpts:{volume:true},html:'<div class="tv-wrap"></div>'}));
+  g.appendChild(mkCard({name:'ETH / USD',dot:'b',badge:'live',tvSym:'BINANCE:ETHUSDT',tvOpts:{volume:true},html:'<div class="tv-wrap"></div>'}));
+  g.appendChild(mkCard({name:'BTC Dominance',dot:'p',badge:'live',tvSym:'CRYPTOCAP:BTC.D',html:'<div class="tv-wrap"></div>'}));
+
+  // Fear & Greed — added 3Y
+  g.appendChild(mkCard({name:'Crypto Fear & Greed Index',dot:'g',
+    tr:'<button class="on" onclick="updFG(30,this)">1M</button><button onclick="updFG(90,this)">3M</button><button onclick="updFG(365,this)">1Y</button><button onclick="updFG(1095,this)">3Y</button>',
+    html:'<div class="cj-wrap"><div class="cj-area"><canvas id="c-fg"></canvas></div></div>'}));
+
+  // AHR999 — added 3Y
+  g.appendChild(mkCard({name:'AHR999 Index',dot:'b',
+    tr:'<button onclick="updAHR(90,this)">3M</button><button class="on" onclick="updAHR(365,this)">1Y</button><button onclick="updAHR(1095,this)">3Y</button>',
+    html:`<div class="val-row"><div class="val" id="ahr-v">–</div><div class="chg" id="ahr-s">Loading…</div></div>
+    <div class="ahr-leg"><span>🟢 &lt;0.45 抄底</span><span>🔵 0.45–1.2 定投</span><span>🔴 &gt;1.2 观望</span></div>
+    <div class="fred-links"><a href="https://www.coinglass.com/zh/pro/i/ahr999" target="_blank">CoinGlass AHR999</a></div>
+    <div class="cj-wrap"><div class="cj-area"><canvas id="c-ahr"></canvas></div></div>`}));
+
+  // 江卓尔 60日累计涨幅 — with 3Y
+  g.appendChild(mkCard({name:'江卓尔 60日BTC累计涨幅',dot:'r',
+    tr:'<button onclick="updJ60(90,this)">3M</button><button class="on" onclick="updJ60(365,this)">1Y</button><button onclick="updJ60(1095,this)">3Y</button>',
+    html:`<div class="val-row"><div class="val" id="j60-v">–</div><div class="chg" id="j60-s">Loading…</div></div>
+    <div class="ahr-leg"><span>🔴 &gt;100% 泡沫预警</span><span>🟡 30%~100% 偏热</span><span>🟢 &lt;-30% 超卖</span></div>
+    <div class="cj-wrap"><div class="cj-area"><canvas id="c-j60"></canvas></div></div>`}));
+
+  // Stablecoin — added 3Y
+  g.appendChild(mkCard({name:'Stablecoin Market Cap',dot:'g',
+    tr:'<button onclick="updSTB(30,this)">1M</button><button onclick="updSTB(90,this)">3M</button><button class="on" onclick="updSTB(365,this)">1Y</button><button onclick="updSTB(1095,this)">3Y</button>',
+    html:'<div class="stb-row" id="stb-sum"></div><div class="cj-wrap"><div class="cj-area"><canvas id="c-stb"></canvas></div></div>'}));
+}
+
+/* ===== CHART.JS ===== */
+Chart.defaults.color='#aeaeb2';Chart.defaults.borderColor='rgba(0,0,0,.05)';
+Chart.defaults.font.family="'Inter',system-ui,sans-serif";Chart.defaults.font.size=10;
+const CJ={};
+function mkCJ(id,labels,data,color,opts={}){
+  const cv=document.getElementById(id);if(!cv)return;
+  const ctx=cv.getContext('2d');if(CJ[id])CJ[id].destroy();
+  const gr=ctx.createLinearGradient(0,0,0,cv.parentElement.clientHeight||240);
+  gr.addColorStop(0,color+'18');gr.addColorStop(1,color+'00');
+  const ds=[{data,borderColor:color,backgroundColor:gr,borderWidth:1.8,fill:true,tension:.35,pointRadius:0,pointHitRadius:10,label:opts.label||''}];
+  if(opts.lines)opts.lines.forEach(l=>ds.push({data:Array(labels.length).fill(l.v),borderColor:l.c,borderWidth:1,borderDash:[4,4],fill:false,pointRadius:0,label:l.l}));
+  CJ[id]=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+    scales:{x:{type:'time',time:{unit:labels.length>365?'month':labels.length>90?'week':'day',displayFormats:{day:'MMM d',week:'MMM d',month:'MMM yy'}},grid:{display:false},ticks:{maxTicksLimit:7}},
+    y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:opts.yF||(v=>v),maxTicksLimit:5},...(opts.yMin!=null&&{min:opts.yMin}),...(opts.yMax!=null&&{max:opts.yMax})}},
+    plugins:{legend:{display:!!opts.lines,labels:{color:'#86868b',font:{size:9.5},usePointStyle:true,pointStyle:'line',padding:12,
+        filter:item=>item.text&&item.text.length>0}},
+      tooltip:{backgroundColor:'#fff',borderColor:'#d2d2d7',borderWidth:.5,titleColor:'#1d1d1f',bodyColor:'#6e6e73',padding:10,displayColors:true,cornerRadius:8,
+        titleFont:{weight:600,size:11},bodyFont:{size:11},
+        callbacks:{label:c=>{const lbl=c.dataset.label||'';const v=c.datasetIndex===0?(opts.tip?opts.tip(c.raw):c.raw?.toLocaleString?.()??c.raw):c.raw;return lbl?lbl+': '+v:''+v}}}}}});
+}
+
+/* ===== FEAR & GREED ===== */
+let _fg=[];
+async function fetchFG(){
+  try{
+    const r=await(await fetch('https://api.alternative.me/fng/?limit=1200&format=json')).json();
+    _fg=r.data.reverse().map(d=>({d:new Date(d.timestamp*1000),v:+d.value,l:d.value_classification}));
+    const L=_fg[_fg.length-1];
+    if(L){document.getElementById('m-fg').textContent=L.v;
+      const e=document.getElementById('m-fg-c');e.textContent=L.l;e.className='mc '+(L.v>=50?'up':'dn')}
+    updFG(30);
+  }catch(e){console.error('FG err:',e)}
+}
+function updFG(n,b){
+  if(b){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+  let d=_fg.slice(-n);
+  if(!d.length&&_fg.length>0) d=_fg;
+  if(!d.length)return;
+  mkCJ('c-fg',d.map(x=>x.d),d.map(x=>x.v),'#28cd41',{yMin:0,yMax:100,label:'Fear & Greed',
+    lines:[{v:25,c:'#ff3b3060',l:'Extreme Fear'},{v:75,c:'#28cd4160',l:'Extreme Greed'}],
+    tip:v=>'Fear & Greed: '+v})}
+
+/* ==========================================================================
+   AHR999 — FIXED: Uses Bitcoin Power Law growth model instead of geometric mean.
+   
+   Formula: AHR999 = (price / 200DMA) × (price / predicted_price)
+   Where: predicted_price = 10^(5.84 × log10(days_since_genesis) − 17.01)
+   Genesis: January 3, 2009 (Bitcoin genesis block)
+   
+   The old code computed geometric mean from only 1095 days of data, which
+   gave values WAY too high because recent prices (~$90k+) dominated.
+   The power law model correctly accounts for Bitcoin's entire history.
+   ========================================================================== */
+const BTC_GENESIS = new Date('2009-01-03T00:00:00Z').getTime();
+
+function btcPredictedPrice(dateMs){
+  const daysSinceGenesis = (dateMs - BTC_GENESIS) / 86400000;
+  if(daysSinceGenesis <= 0) return 0;
+  return Math.pow(10, 5.84 * Math.log10(daysSinceGenesis) - 17.01);
+}
+
+let _ahr=[];let _j60=[];let _btcPrices=[];let _ahrRetries=0;
+
+async function fetchBTCData(){
+  const sEl=document.getElementById('ahr-s');
+  const j60s=document.getElementById('j60-s');
+  try{
+    if(sEl){sEl.textContent='加载中…';sEl.className='chg'}
+    if(j60s){j60s.textContent='加载中…';j60s.className='chg'}
+
+    /* Try 3 independent data sources. Each returns [[timestamp_ms, price], ...].
+       Need 200+ points for AHR999 (200-day MA warmup), ideally 1300+ for 3Y display. */
+    let P=null;const errs=[];
+
+    /* ── Source 1: CryptoCompare histoday (free, single call, up to 2000 days) ── */
+    if(!P||P.length<201){
+      try{
+        const res=await fetch('https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=2000');
+        if(res.ok){
+          const j=await res.json();
+          if(j.Data?.Data?.length>200){
+            P=j.Data.Data.filter(d=>d.close>0).map(d=>[d.time*1000,d.close]);
+            console.log('✅ CryptoCompare: '+P.length+' daily candles');
+          }else{errs.push('CC: only '+(j.Data?.Data?.length||0)+' pts')}
+        }else{errs.push('CC: HTTP '+res.status)}
+      }catch(e){errs.push('CC: '+e.message)}
+    }
+
+    /* ── Source 2: Binance klines (free, no auth, 2 sequential calls) ── */
+    if(!P||P.length<201){
+      try{
+        const now=Date.now(),all=[];
+        const r1=await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${now-1500*86400000}&endTime=${now-500*86400000}&limit=1000`);
+        if(r1.ok){const d=await r1.json();all.push(...d)}
+        const r2=await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${now-500*86400000}&limit=1000`);
+        if(r2.ok){const d=await r2.json();all.push(...d)}
+        if(all.length>200){
+          P=all.map(k=>[k[0],parseFloat(k[4])]);
+          console.log('✅ Binance: '+P.length+' daily candles');
+        }else{errs.push('BN: only '+all.length+' pts')}
+      }catch(e){errs.push('BN: '+e.message)}
+    }
+
+    /* ── Source 3: CoinGecko (rate-limited, last resort) ── */
+    if(!P||P.length<201){
+      for(const days of [1500,1095,365]){
+        try{
+          const res=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days='+days);
+          if(res.status===429){console.warn('CG 429, wait 8s...');await new Promise(r=>setTimeout(r,8000));continue}
+          if(!res.ok){errs.push('CG('+days+'): HTTP '+res.status);continue}
+          const j=await res.json();
+          if(j.prices?.length>200){
+            P=j.prices;
+            console.log('✅ CoinGecko: '+P.length+' pts for days='+days);
+            break;
+          }
+        }catch(e){errs.push('CG('+days+'): '+e.message)}
+      }
+    }
+
+    if(!P||P.length<201){
+      console.error('All BTC sources failed:',errs);
+      throw new Error('数据源均失败: '+errs.join(' | '));
+    }
+
+    _btcPrices=P;
+
+    /* ── Compute AHR999 using Power Law ── */
+    _ahr=[];
+    for(let i=0;i<P.length;i++){
+      if(i>=199){
+        let maSum=0;for(let k=i-199;k<=i;k++) maSum+=P[k][1];
+        const ma200=maSum/200;
+        const price=P[i][1];
+        const predicted=btcPredictedPrice(P[i][0]);
+        if(predicted>0&&ma200>0){
+          const ahr=(price/ma200)*(price/predicted);
+          _ahr.push({d:new Date(P[i][0]),v:ahr});
+        }
+      }
+    }
+
+    /* ── Update AHR999 display ── */
+    const L=_ahr[_ahr.length-1];
+    if(L){
+      document.getElementById('m-ahr').textContent=L.v.toFixed(2);
+      document.getElementById('ahr-v').textContent=L.v.toFixed(2);
+      const e=document.getElementById('m-ahr-c'),s=document.getElementById('ahr-s');
+      if(L.v<.45){e.textContent='抄底区间';e.className='mc up';s.textContent='抄底';s.className='chg up'}
+      else if(L.v<1.2){e.textContent='定投区间';e.className='mc';e.style.color='var(--blue)';s.textContent='定投';s.className='chg';s.style.cssText='color:var(--blue);background:var(--blue-bg)'}
+      else{e.textContent='观望区间';e.className='mc dn';s.textContent='观望';s.className='chg dn'}
+    }
+    updAHR(365);
+
+    /* ── Compute 江卓尔 60日累计涨幅 ── */
+    _j60=[];
+    for(let i=60;i<P.length;i++){
+      const pNow=P[i][1],p60=P[i-60][1];
+      if(p60>0){
+        _j60.push({d:new Date(P[i][0]),v:((pNow-p60)/p60)*100});
+      }
+    }
+
+    /* ── Update 60日涨幅 display ── */
+    const J=_j60[_j60.length-1];
+    if(J){
+      document.getElementById('m-j60').textContent=(J.v>=0?'+':'')+J.v.toFixed(1)+'%';
+      document.getElementById('j60-v').textContent=(J.v>=0?'+':'')+J.v.toFixed(1)+'%';
+      const e=document.getElementById('m-j60-c'),s=document.getElementById('j60-s');
+      if(J.v>100){e.textContent='泡沫预警';e.className='mc dn';s.textContent='泡沫';s.className='chg dn'}
+      else if(J.v>30){e.textContent='偏热';e.className='mc';e.style.color='var(--amber)';s.textContent='偏热';s.className='chg';s.style.cssText='color:var(--amber);background:var(--amber-bg)'}
+      else if(J.v<-30){e.textContent='超卖区间';e.className='mc up';s.textContent='超卖';s.className='chg up'}
+      else{e.textContent='正常区间';e.className='mc';e.style.color='var(--blue)';s.textContent='正常';s.className='chg';s.style.cssText='color:var(--blue);background:var(--blue-bg)'}
+    }
+    updJ60(365);
+    _ahrRetries=0;
+  }catch(e){
+    console.error('BTC data err:',e);
+    const msg=_ahrRetries<4?'重试中('+(_ahrRetries+1)+'/5)…':'加载失败 — 刷新重试';
+    if(sEl){sEl.textContent=msg;sEl.className='chg dn'}
+    if(j60s){j60s.textContent=msg;j60s.className='chg dn'}
+    if(_ahrRetries<4){_ahrRetries++;setTimeout(fetchBTCData,8000*_ahrRetries)}
+  }
+}
+
+function updAHR(n,b){
+  if(b){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+  let d=_ahr.slice(-n);
+  if(!d.length&&_ahr.length>0) d=_ahr; // fallback: show all available data if requested range exceeds data
+  if(!d.length)return;
+  console.log('AHR999 chart: requested '+n+' days, showing '+d.length+' points (total available: '+_ahr.length+')');
+  mkCJ('c-ahr',d.map(x=>x.d),d.map(x=>x.v),'#0071e3',{label:'AHR999',
+    lines:[{v:.45,c:'#28cd4180',l:'抄底线 (0.45)'},{v:1.2,c:'#ff3b3080',l:'观望线 (1.2)'}],
+    tip:v=>'AHR999: '+v.toFixed(4)})}
+
+function updJ60(n,b){
+  if(b){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+  let d=_j60.slice(-n);
+  if(!d.length&&_j60.length>0) d=_j60;
+  if(!d.length)return;
+  mkCJ('c-j60',d.map(x=>x.d),d.map(x=>x.v),'#ff9f0a',{label:'60日涨幅',
+    lines:[{v:100,c:'#ff3b3080',l:'泡沫线 (100%)'},{v:0,c:'#86868b50',l:'零线'},{v:-30,c:'#28cd4180',l:'超卖线 (-30%)'}],
+    tip:v=>'60日涨幅: '+(v>=0?'+':'')+v.toFixed(1)+'%',
+    yF:v=>(v>=0?'+':'')+v.toFixed(0)+'%'})}
+
+/* ===== STABLECOIN ===== */
+let _stb=[];
+async function fetchSTB(){
+  try{
+    const[tR,cR]=await Promise.all([
+      fetch('https://stablecoins.llama.fi/stablecoins?includePrices=true'),
+      fetch('https://stablecoins.llama.fi/stablecoincharts/All')]);
+    const tJ=await tR.json(),cJ=await cR.json();
+    let tot=0;const t5=[];
+    if(tJ.peggedAssets){
+      const sr=tJ.peggedAssets.filter(s=>s.circulating?.peggedUSD).sort((a,b)=>(b.circulating.peggedUSD||0)-(a.circulating.peggedUSD||0));
+      sr.slice(0,5).forEach(s=>t5.push({n:s.name,m:s.circulating.peggedUSD||0}));
+      tot=sr.reduce((s,x)=>s+(x.circulating.peggedUSD||0),0);
+    }
+    document.getElementById('m-stb').textContent='$'+fB(tot);
+    const sm=document.getElementById('stb-sum');
+    if(sm&&t5.length) sm.innerHTML=t5.map(s=>`<div class="stb-item"><span class="l">${s.n}</span><span class="v">$${fB(s.m)}</span></div>`).join('');
+    if(Array.isArray(cJ)){
+      _stb=cJ.map(d=>{let v=0;if(d.totalCirculating)v=Object.values(d.totalCirculating).reduce((s,x)=>s+(x||0),0);return{d:new Date(d.date*1000),v}}).filter(x=>x.v>0);
+    }
+    if(_stb.length>7){
+      const n=_stb[_stb.length-1].v,w=_stb[_stb.length-8].v,ch=((n-w)/w*100).toFixed(2);
+      const e=document.getElementById('m-stb-c');e.textContent=`7d: ${ch>=0?'+':''}${ch}%`;e.className='mc '+(ch>=0?'up':'dn');
+    }
+    updSTB(365);
+  }catch(e){console.error('STB err:',e)}
+}
+function updSTB(n,b){
+  if(b){b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+  let d=_stb.slice(-n);
+  if(!d.length&&_stb.length>0) d=_stb;
+  if(!d.length)return;
+  mkCJ('c-stb',d.map(x=>x.d),d.map(x=>x.v),'#28cd41',{label:'Stablecoin Mcap',yF:v=>'$'+fB(v),tip:v=>'$'+fB(v)})}
+
+/* ===== CRYPTO METRICS ===== */
+let _cmData={};
+async function fetchCM(){
+  try{
+    const[gR,pR]=await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/global'),
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true')]);
+    const gJ=await gR.json(),pJ=await pR.json();
+    if(gJ.data?.market_cap_percentage?.btc){const v=gJ.data.market_cap_percentage.btc;document.getElementById('m-btcd').textContent=v.toFixed(1)+'%';_cmData.btcD=v}
+    if(pJ.bitcoin){
+      document.getElementById('m-btc').textContent='$'+Number(pJ.bitcoin.usd).toLocaleString('en-US',{maximumFractionDigits:0});
+      const c=pJ.bitcoin.usd_24h_change;const e=document.getElementById('m-btc-c');
+      e.textContent=`24h: ${c>=0?'+':''}${c.toFixed(2)}%`;e.className='mc '+(c>=0?'up':'dn');
+      _cmData.btcP=pJ.bitcoin.usd;_cmData.btc24=c;
+    }
+    if(pJ.ethereum){
+      document.getElementById('m-eth').textContent='$'+Number(pJ.ethereum.usd).toLocaleString('en-US',{maximumFractionDigits:0});
+      const c=pJ.ethereum.usd_24h_change;const e=document.getElementById('m-eth-c');
+      e.textContent=`24h: ${c>=0?'+':''}${c.toFixed(2)}%`;e.className='mc '+(c>=0?'up':'dn');
+    }
+  }catch(e){console.error('CM err:',e)}
+}
+
+/* ===== ANALYSIS ENGINE ===== */
+function mkSig(label,value,signal){return`<div class="signal-row"><div class="sig-dot ${signal}"></div><div class="sig-label">${label}</div><div class="sig-value">${value}</div><div class="sig-tag ${signal}">${signal==='bullish'?'利多':signal==='bearish'?'利空':'注意'}</div></div>`}
+function mkVerdict(overall,text){return`<div class="verdict-box ${overall}"><div class="verdict-title">${overall==='bullish'?'🟢 综合判断：偏多':overall==='bearish'?'🔴 综合判断：谨慎偏空':'🟡 综合判断：中性观望'}</div><div class="verdict-text">${text}</div></div>`}
+
+function buildAnalysis(){
+  // TradeFi
+  const tfB=document.getElementById('an-tf-body');
+  let tf='';
+  tf+=mkSig('Cash Level','3.2% — 历史最低，触发卖出信号','bearish');
+  tf+=mkSig('Bull & Bear','9.4 Hyper-Bull — 极端反向卖出','bearish');
+  tf+=mkSig('股票超配','48% 超配 — 拥挤多头','bearish');
+  tf+=mkSig('无对冲','~48% 无保护 — 2018来最高','bearish');
+  tf+=mkSig('Margin Debt','$1.226T ATH — YoY +36%','caution');
+  tf+=mkSig('增长预期','Net 38% 看好 — 基本面强','bullish');
+  tf+=mkSig('软着陆','57% 预期 / 仅3%硬着陆','bullish');
+  tf+=mkSig('AAII散户','Bull 39.7% / Bear 29.0% — 温和偏多','neutral');
+  tf+=mkSig('Fed利率','3.50-3.75% 暂停 — 6月或首次降息','neutral');
+  tf+=mkVerdict('bearish','当前TradeFi市场处于<b>高风险区域</b>。BofA Survey多项经典反向指标已触发：Cash Level历史最低(3.2%) + Bull/Bear 9.4极端 + 48%无对冲保护，叠加Margin Debt $1.226T历史新高。AAII散户情绪温和偏多(Bull 39.7%接近均值)，未触发极端信号，但机构端已极度拥挤。Fed暂停降息，6月或为首次降息窗口，利率环境对风险资产尚不明朗。<br><br><b>建议：</b>不宜大举增仓。可考虑减少杠杆、增加对冲（VIX看涨/SPY看跌期权）、逐步获利了结拥挤交易。关注AAII Bear突破50%或Fed降息启动作为转向信号。');
+  tfB.innerHTML=tf;
+
+  // Crypto
+  const crB=document.getElementById('an-cr-body');
+  let cr='';
+
+  // Fear & Greed
+  const fgV=_fg.length?_fg[_fg.length-1].v:null;
+  if(fgV!==null){
+    const sig=fgV<=25?'bullish':fgV<=40?'bullish':fgV>=75?'bearish':fgV>=60?'caution':'neutral';
+    cr+=mkSig('Fear & Greed',fgV+' — '+(fgV<=25?'极度恐惧→买入':fgV<=40?'恐惧→偏多':fgV>=75?'极度贪婪→卖出':fgV>=60?'贪婪→注意':'中性'),sig);
+  }
+
+  // AHR999
+  const ahrV=_ahr.length?_ahr[_ahr.length-1].v:null;
+  if(ahrV!==null){
+    const sig=ahrV<.45?'bullish':ahrV<1.2?'neutral':'bearish';
+    cr+=mkSig('AHR999',ahrV.toFixed(2)+' — '+(ahrV<.45?'抄底区':ahrV<1.2?'定投区':'观望区'),sig);
+  }else cr+=mkSig('AHR999','数据未加载','neutral');
+
+  // 60日涨幅
+  const j60V=_j60.length?_j60[_j60.length-1].v:null;
+  if(j60V!==null){
+    const sig=j60V>100?'bearish':j60V>30?'caution':j60V<-30?'bullish':'neutral';
+    cr+=mkSig('60日涨幅',(j60V>=0?'+':'')+j60V.toFixed(1)+'% — '+(j60V>100?'泡沫预警':j60V>30?'偏热':j60V<-30?'超卖→买入':'正常'),sig);
+  }
+
+  // BTC Dominance
+  if(_cmData.btcD){
+    const v=_cmData.btcD;
+    cr+=mkSig('BTC.D',v.toFixed(1)+'% — '+(v>60?'BTC强势':v<45?'山寨季':'平衡'),v>60?'caution':v<45?'bullish':'neutral');
+  }
+
+  // Stablecoin
+  if(_stb.length>30){
+    const now=_stb[_stb.length-1].v,m30=_stb[_stb.length-31]?.v;
+    if(m30){const ch=((now-m30)/m30*100);
+      cr+=mkSig('稳定币','$'+fB(now)+' (30d: '+(ch>=0?'+':'')+ch.toFixed(1)+'%)',ch>2?'bullish':ch<-2?'bearish':'neutral');
+    }
+  }
+
+  // BTC 24h
+  if(_cmData.btc24!==undefined){
+    const m=_cmData.btc24;
+    cr+=mkSig('BTC 24h',(m>=0?'+':'')+m.toFixed(2)+'%',m>3?'bullish':m<-3?'bearish':'neutral');
+  }
+
+  // Verdict
+  const sigs=cr.match(/sig-dot (bullish|bearish|caution|neutral)/g)||[];
+  const bull=sigs.filter(s=>s.includes('bullish')).length;
+  const bear=sigs.filter(s=>s.includes('bearish')).length;
+  const overall=bull>bear+1?'bullish':bear>bull?'bearish':'neutral';
+
+  let vt='';
+  if(overall==='bullish')
+    vt='综合Crypto指标显示<b>当前为相对有利的入场窗口</b>。'+(ahrV&&ahrV<.45?'AHR999处于抄底区间，':'')+(ahrV&&ahrV<1.2&&ahrV>=.45?'AHR999处于定投区间，':'')+(fgV&&fgV<50?'市场情绪未过热，':'')+(j60V&&j60V<0?'60日涨幅为负说明短期已回调。':'')+'建议采取<b>分批建仓/DCA策略</b>，优先配置BTC和主流资产。';
+  else if(overall==='bearish')
+    vt='多项指标显示<b>短期过热或处于高位</b>。'+(fgV&&fgV>=70?'贪婪指数偏高，':'')+(j60V&&j60V>50?'60日涨幅过大，':'')+(ahrV&&ahrV>=1.2?'AHR999进入观望区。':'')+'建议<b>暂停加仓，部分获利了结</b>，等待回调后再入场。';
+  else
+    vt='市场信号较为混合，无极端信号。建议<b>维持仓位，DCA定投</b>。密切关注AHR999和60日涨幅变化，若出现抄底/超卖信号可加大投入。';
+
+  cr+=mkVerdict(overall,vt);
+  crB.innerHTML=cr;
+}
+
+/* ===== HELPERS ===== */
+function fB(v){if(!v)return'–';if(v>=1e12)return(v/1e12).toFixed(2)+'T';if(v>=1e9)return(v/1e9).toFixed(2)+'B';if(v>=1e6)return(v/1e6).toFixed(2)+'M';return v.toLocaleString()}
+function updTime(){document.getElementById('upd').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}
+async function refreshAll(){
+  const b=document.getElementById('ref-btn');b.classList.add('spin');
+  await Promise.allSettled([fetchCM(),fetchFG(),fetchSTB()]);
+  setTimeout(fetchBTCData,1500);
+  updTime();b.classList.remove('spin');
+}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTF();buildCR();
+  fetchFG();       // alternative.me — no conflict
+  fetchSTB();      // DefiLlama — no conflict
+  fetchCM();       // CoinGecko (global + prices)
+  // BTC data: tries CryptoCompare → Binance → CoinGecko (3 independent sources)
+  setTimeout(fetchBTCData,2500);
+  updTime();
+  setInterval(()=>{fetchCM();fetchFG()},300000);
+});
+</script>
+</body>
+</html>
